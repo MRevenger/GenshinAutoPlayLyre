@@ -14,6 +14,7 @@ using namespace std;
 //变量
 int selected;
 string path;
+int waitTick = 100;
 bool playing;
 vector<string> musics;//存储文件名
 DWORD64 beginTick = GetTickCount(), endTick = GetTickCount();
@@ -53,10 +54,13 @@ void colorPrint(string s, int color = 7) {
 }
 
 void getFiles() {
+    musics.clear();
+    musics.shrink_to_fit();
     _finddata_t fileinfo;
-    long long hFile = _findfirst(path.append("//*").c_str(), &fileinfo);
+    string temp;
+    long long hFile = _findfirst(temp.assign(path).append("//*").c_str(), &fileinfo);
     if(hFile == -1) return;
-    while(!_findnext(hFile, &fileinfo)) { if(strcmp(fileinfo.name, "..") && strcmp(fileinfo.name, "."))musics.push_back(fileinfo.name); }
+    while(!_findnext(hFile, &fileinfo)) { if(strcmp(fileinfo.name, "..") && strcmp(fileinfo.name, ".")) musics.push_back(fileinfo.name); }
 }
 
 void control() {
@@ -69,23 +73,23 @@ void control() {
             else selected += lines * 3 - 3;
         }
         show();
-        Sleep(5);
+        Sleep(waitTick);
     }
     if(GetAsyncKeyState(VK_LEFT) & 0x8000) {
         selected = (selected - 1 + musics.size()) % musics.size();
         show();
-        Sleep(5);
+        Sleep(waitTick);
     }
     if (GetAsyncKeyState(VK_RIGHT) & 0x8000) {
         selected = (selected + 1) % musics.size();
         show();
-        Sleep(5);
+        Sleep(waitTick);
     }
     if(GetAsyncKeyState(VK_DOWN) & 0x8000) {
         if(musics.size() - selected - 1 >= 3) selected += 3;
         else selected %= 3;
         show();
-        Sleep(5);
+        Sleep(waitTick);
     }
     if(GetAsyncKeyState(VK_ESCAPE) & 0x8000) exit(0);
     if(GetAsyncKeyState(VK_NUMPAD0) & 0x8000 && !playing) {
@@ -96,7 +100,7 @@ void control() {
 string readFile() {
     ifstream infile;
     string file;
-    file = (string)path + musics[selected];
+    file = (string)path + "\\" + musics[selected];
     infile.open(file, ios::in);
     if(!infile.is_open()) {
         colorPrint("File not found, please check again!\n", 4);
@@ -213,11 +217,8 @@ void play() {
 }
 
 void show() {
+    system("cls");
     getFiles();
-    HANDLE hOutput;
-    COORD coord={0,0};
-    hOutput=GetStdHandle(STD_OUTPUT_HANDLE);
-    SetConsoleCursorPosition(hOutput, coord);
     colorPrint("按方向键上下移动,按下数字键0开始弹奏,按下ESC停止演奏\n", 4);
     int n = musics.size();
     for(int i = 0; i < n; ++i) {

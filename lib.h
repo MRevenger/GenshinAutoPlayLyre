@@ -54,9 +54,9 @@ void colorPrint(string s, int color = 7) {
 
 void getFiles() {
     _finddata_t fileinfo;
-    long long hFile = _findfirst(path.append("//*").c_str(), &fileinfo);
+    long long hFile = _findfirst(path.append("\\*.*").c_str(), &fileinfo);
     if(hFile == -1) return;
-    while(!_findnext(hFile, &fileinfo)) { if(strcmp(fileinfo.name, "..") && strcmp(fileinfo.name, "."))musics.push_back(fileinfo.name); }
+    while(!_findnext(hFile, &fileinfo)) { if(strcmp(fileinfo.name, "..") && strcmp(fileinfo.name, ".")) musics.push_back(fileinfo.name); }
 }
 
 void control() {
@@ -96,7 +96,7 @@ void control() {
 string readFile() {
     ifstream infile;
     string file;
-    file = (string)path + musics[selected];
+    file =  "music//" + musics[selected];
     infile.open(file, ios::in);
     if(!infile.is_open()) {
         colorPrint("File not found, please check again!\n", 4);

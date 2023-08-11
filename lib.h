@@ -53,45 +53,50 @@ void colorPrint(string s, int color = 7) {
 }
 
 void getFiles() {
+    musics.clear();
+    musics.shrink_to_fit();
     _finddata_t fileinfo;
-    long long hFile = _findfirst(path.append("\\*.*").c_str(), &fileinfo);
+    string temp = path;
+    long long hFile = _findfirst(temp.append("\\*.*").c_str(), &fileinfo);
     if(hFile == -1) return;
     while(!_findnext(hFile, &fileinfo)) { if(strcmp(fileinfo.name, "..") && strcmp(fileinfo.name, ".")) musics.push_back(fileinfo.name); }
 }
 
 void control() {
-    if(GetAsyncKeyState(VK_UP) & 0x8000) {
-        if(selected >= 3) selected -= 3;
-        else {
-            int lines = musics.size() / 3;
-            if(musics.size() % 3 == 0) selected += musics.size() - 3;
-            else if(musics.size() - lines * 3 >= selected + 1) selected += lines * 3;
-            else selected += lines * 3 - 3;
+    if(GetAsyncKeyState(VK_LMENU) & 0x8000) {
+        if(GetAsyncKeyState(VK_UP) & 0x8000) {
+            if(selected >= 3) selected -= 3;
+            else {
+                int lines = musics.size() / 3;
+                if(musics.size() % 3 == 0) selected += musics.size() - 3;
+                else if(musics.size() - lines * 3 >= selected + 1) selected += lines * 3;
+                else selected += lines * 3 - 3;
+            }
+            show();
+            Sleep(80);
         }
-        show();
-        Sleep(5);
-    }
-    if(GetAsyncKeyState(VK_LEFT) & 0x8000) {
-        selected = (selected - 1 + musics.size()) % musics.size();
-        show();
-        Sleep(5);
-    }
-    if (GetAsyncKeyState(VK_RIGHT) & 0x8000) {
-        selected = (selected + 1) % musics.size();
-        show();
-        Sleep(5);
-    }
-    if(GetAsyncKeyState(VK_DOWN) & 0x8000) {
-        if(musics.size() - selected - 1 >= 3) selected += 3;
-        else selected %= 3;
-        show();
-        Sleep(5);
+        if(GetAsyncKeyState(VK_LEFT) & 0x8000) {
+            selected = (selected - 1 + musics.size()) % musics.size();
+            show();
+            Sleep(80);
+        }
+        if (GetAsyncKeyState(VK_RIGHT) & 0x8000) {
+            selected = (selected + 1) % musics.size();
+            show();
+            Sleep(80);
+        }
+        if(GetAsyncKeyState(VK_DOWN) & 0x8000) {
+            if(musics.size() - selected - 1 >= 3) selected += 3;
+            else selected %= 3;
+            show();
+            Sleep(80);
+        }
+        if(GetAsyncKeyState(VK_NUMPAD0) & 0x8000 && !playing) {
+            playing = true;
+            play();
+        }
     }
     if(GetAsyncKeyState(VK_ESCAPE) & 0x8000) exit(0);
-    if(GetAsyncKeyState(VK_NUMPAD0) & 0x8000 && !playing) {
-        playing = true;
-        play();
-    }
 }
 string readFile() {
     ifstream infile;
@@ -121,23 +126,26 @@ void play() {
                 }
                 playing = false;
                 return;
+                Sleep(500);
             }
             press(upper(s[i]));
         }
         beginTick = GetTickCount(), endTick = GetTickCount();
-        while(endTick - beginTick < interval * 1000) {
+        while(endTick - beginTick < interval * 1000 - 1) {
             if(GetAsyncKeyState(VK_ESCAPE) & 0x8000) {
                 for(int k = 0; k < s.size(); ++k) {
                     release(upper(s[k]));
                 }
                 playing = false;
                 return;
+                Sleep(500);
             }
             endTick = GetTickCount();
         }
         for(int k = 0; k < s.size(); ++k) {
             release(upper(s[k]));
         }
+        Sleep(0);
     };
     string t = readFile(), temp = "", keys = "", out = "";
     bool flag = false;
@@ -167,7 +175,8 @@ void play() {
             for(int k = 0; k < t.size(); ++k) {
                 if(isalpha(t[k])) release(t[k]);
             }
-            playing = true;
+            playing = false;
+            Sleep(500);
         }
         if(isalpha(t[i])) {
             if(flag) {
@@ -209,6 +218,8 @@ void play() {
     }
     playing = false;
     colorPrint("\n演奏完毕", 4);
+    Sleep(500);
+    system("cls");
     show();
 }
 
@@ -218,7 +229,7 @@ void show() {
     COORD coord={0,0};
     hOutput=GetStdHandle(STD_OUTPUT_HANDLE);
     SetConsoleCursorPosition(hOutput, coord);
-    colorPrint("按方向键上下移动,按下数字键0开始弹奏,按下ESC停止演奏\n", 4);
+    colorPrint("按左ALT+方向键上下移动,按下左ALT+数字键0开始弹奏,按下ESC停止演奏\n", 4);
     int n = musics.size();
     for(int i = 0; i < n; ++i) {
         int length = musics[i].length();
